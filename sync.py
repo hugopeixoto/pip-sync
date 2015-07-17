@@ -1,6 +1,6 @@
 import pip
 
-exceptions = ['pip', 'setuptools']
+exceptions = ['pip', 'setuptools', 'wheel']
 
 def diff(requirements, installed):
     requirements = { r.req.key: r for r in requirements }
