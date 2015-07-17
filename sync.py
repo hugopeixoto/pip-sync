@@ -1,27 +1,47 @@
 import pip
-import itertools
 
 exceptions = ['pip', 'setuptools']
-required = {
-        r.req.key: r
-        for r in pip.req.parse_requirements('requirements.txt', session=True)
-        }
 
-installed = pip.get_installed_distributions()
+def diff(requirements, installed):
+    requirements = { r.req.key: r for r in requirements }
 
-satified = set()
+    to_be_installed = set()
+    to_be_uninstalled = set()
 
-for installed in installed:
-    key = installed.key
+    satisfied = set()
 
-    if key in exceptions:
-        print("whitelisted {}".format(key))
-    elif key in required and installed.version in required[key].specifier:
-        satified.add(key)
-    else:
-        print("uninstall {}".format(key))
+    for module in installed:
+        key = module.key
 
-for key, requirement in required.items():
-    if key not in satified:
-        print("install {}".format(requirement))
+        if key in exceptions:
+            pass
+        elif key not in requirements:
+            to_be_uninstalled.add(module.as_requirement())
+        elif module.version in requirements[key].specifier:
+            satisfied.add(key)
 
+    for key, requirement in requirements.items():
+        if key not in satisfied:
+            to_be_installed.add(requirement.req)
+
+    return (to_be_installed, to_be_uninstalled)
+
+
+def sync(to_be_installed, to_be_uninstalled):
+    if to_be_uninstalled:
+        pip.main(["uninstall", '-y'] + [str(req) for req in to_be_uninstalled])
+
+    if to_be_installed:
+        pip.main(["install"] + [str(req) for req in to_be_installed])
+
+def run():
+    requirements = pip.req.parse_requirements('requirements.txt', session=True)
+    installed = pip.get_installed_distributions()
+
+    to_be_installed, to_be_uninstalled = diff(requirements, installed)
+
+    sync(to_be_installed, to_be_uninstalled)
+
+
+if __name__ == '__main__':
+    run()
