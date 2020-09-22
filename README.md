@@ -7,3 +7,5 @@ requirements.txt and uninstalling the ones that don't.
 For more information, see this post: [http://nvie.com/posts/better-package-management/]
 
 This code is a proof of concept.
+
+The final implementation was merged into https://github.com/jazzband/pip-tools/.
